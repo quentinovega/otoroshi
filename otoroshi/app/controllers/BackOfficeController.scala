@@ -1,16 +1,19 @@
 package controllers
 
 import java.util.Base64
+import java.util.concurrent.ConcurrentHashMap
 
 import actions.{BackOfficeAction, BackOfficeActionAuth}
+import akka.http.scaladsl.model.Uri
+import akka.http.scaladsl.model.Uri.Path
 import akka.http.scaladsl.util.FastFuture
+import akka.http.scaladsl.util.FastFuture._
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import ch.qos.logback.classic.{Level, LoggerContext}
 import com.google.common.base.Charsets
 import env.Env
 import events._
-import gateway.{GatewayRequestHandler, WebSocketHandler}
 import models._
 import org.joda.time.DateTime
 import org.slf4j.LoggerFactory
@@ -20,13 +23,11 @@ import play.api.libs.json._
 import play.api.libs.streams.Accumulator
 import play.api.libs.ws.{EmptyBody, SourceBody}
 import play.api.mvc._
-import utils.LocalCache
 import security._
-import org.mindrot.jbcrypt.BCrypt
-import akka.http.scaladsl.util.FastFuture._
+import utils.LocalCache
 
-import scala.concurrent.duration._
 import scala.concurrent.Future
+import scala.concurrent.duration._
 import scala.util.Success
 
 class BackOfficeController(BackOfficeAction: BackOfficeAction,
@@ -61,50 +62,66 @@ class BackOfficeController(BackOfficeAction: BackOfficeAction,
     }
 
   def proxyAdminApi(path: String) = BackOfficeActionAuth.async(sourceBodyParser) { ctx =>
-    val host                   = if (env.isDev) env.adminApiExposedHost else env.adminApiExposedHost
-    val localUrl               = if (env.adminApiProxyHttps) s"https://127.0.0.1:${env.port}" else s"http://127.0.0.1:${env.port}"
-    val url                    = if (env.adminApiProxyUseLocal) localUrl else s"https://${env.adminApiExposedHost}"
-    lazy val currentReqHasBody = hasBody(ctx.request)
-    logger.debug(s"Calling ${ctx.request.method} $url/$path with Host = $host")
-    val headers = Seq(
-      "Host"                           -> host,
-      env.Headers.OtoroshiVizFromLabel -> "Otoroshi Admin UI",
-      env.Headers.OtoroshiVizFrom      -> "otoroshi-admin-ui",
-      env.Headers.OtoroshiClientId     -> env.backOfficeApiKey.clientId,
-      env.Headers.OtoroshiClientSecret -> env.backOfficeApiKey.clientSecret,
-      env.Headers.OtoroshiAdminProfile -> Base64.getUrlEncoder.encodeToString(
-        Json.stringify(ctx.user.profile).getBytes(Charsets.UTF_8)
-      )
-    ) ++ ctx.request.headers.get("Content-Type").filter(_ => currentReqHasBody).map { ctype =>
-      "Content-Type" -> ctype
-    } ++ ctx.request.headers.get("Accept").map { accept =>
-      "Accept" -> accept
-    }
-    env.Ws
-      .url(s"$url/$path")
-      .withHttpHeaders(headers: _*)
-      .withFollowRedirects(false)
-      .withMethod(ctx.request.method)
-      .withRequestTimeout(1.minute)
-      .withQueryStringParameters(ctx.request.queryString.toSeq.map(t => (t._1, t._2.head)): _*)
-      .withBody(if (currentReqHasBody) SourceBody(ctx.request.body) else EmptyBody)
-      .stream()
-      .fast
-      .map { res =>
-        val ctype = res.headers.get("Content-Type").flatMap(_.headOption).getOrElse("application/json")
-        Status(res.status)
-          .sendEntity(
-            HttpEntity.Streamed(
-              Source.lazily(() => res.bodyAsSource),
-              res.headers.get("Content-Length").flatMap(_.lastOption).map(_.toInt),
-              res.headers.get("Content-Type").flatMap(_.headOption)
-            )
-          )
-          .withHeaders(
-            res.headers.mapValues(_.head).toSeq.filter(_._1 != "Content-Type").filter(_._1 != "Content-Length"): _*
-          )
-          .as(ctype)
+    val host      = if (env.isDev) env.adminApiExposedHost else env.adminApiExposedHost
+    val localUrl  = if (env.adminApiProxyHttps) s"https://127.0.0.1:${env.port}" else s"http://127.0.0.1:${env.port}"
+    val url       = if (env.adminApiProxyUseLocal) localUrl else s"https://${env.adminApiExposedHost}"
+
+    def callAdminApi() = {
+      lazy val currentReqHasBody = hasBody(ctx.request)
+      logger.debug(s"Calling ${ctx.request.method} $url/$path with Host = $host")
+      val headers = Seq(
+        "Host"                           -> host,
+        env.Headers.OtoroshiVizFromLabel -> "Otoroshi Admin UI",
+        env.Headers.OtoroshiVizFrom      -> "otoroshi-admin-ui",
+        env.Headers.OtoroshiClientId     -> env.backOfficeApiKey.clientId,
+        env.Headers.OtoroshiClientSecret -> env.backOfficeApiKey.clientSecret,
+        env.Headers.OtoroshiAdminProfile -> Base64.getUrlEncoder.encodeToString(
+          Json.stringify(ctx.user.profile).getBytes(Charsets.UTF_8)
+        )
+      ) ++ ctx.request.headers.get("Content-Type").filter(_ => currentReqHasBody).map { ctype =>
+        "Content-Type" -> ctype
+      } ++ ctx.request.headers.get("Accept").map { accept =>
+        "Accept" -> accept
       }
+      env.Ws
+        .url(s"$url/$path")
+        .withHttpHeaders(headers: _*)
+        .withFollowRedirects(false)
+        .withMethod(ctx.request.method)
+        .withRequestTimeout(1.minute)
+        .withQueryStringParameters(ctx.request.queryString.toSeq.map(t => (t._1, t._2.head)): _*)
+        .withBody(if (currentReqHasBody) SourceBody(ctx.request.body) else EmptyBody)
+        .stream()
+        .fast
+        .map { res =>
+          val ctype = res.headers.get("Content-Type").flatMap(_.headOption).getOrElse("application/json")
+          val outHeaders = res.headers.mapValues(_.head).toSeq.filter(_._1 != "Content-Type").filter(_._1 != "Content-Length")
+          Status(res.status)
+            .sendEntity(
+              HttpEntity.Streamed(
+                Source.lazily(() => res.bodyAsSource),
+                res.headers.get("Content-Length").flatMap(_.lastOption).map(_.toInt),
+                res.headers.get("Content-Type").flatMap(_.headOption)
+              )
+            )
+            .withHeaders(outHeaders: _*)
+            .as(ctype)
+        }
+    }
+
+    // xsrfToken match {
+    //   case Some(tok) if validateToken(tok) => ctx.request.headers
+    //     .get("Origin")
+    //     .map(Uri.apply)
+    //     .orElse(ctx.request.headers.get("Referer").map(Uri.apply).map(uri => uri.copy(path = Path.Empty)))
+    //     .map(u => u.authority.copy(port = 0).toString()) match {
+    //     case Some(origin) if origin == env.backOfficeHost => callAdminApi()
+    //     case _ => FastFuture.successful(ExpectationFailed(Json.obj("error" -> "Bad Origin")))
+    //   }
+    //   case _ => FastFuture.successful(ExpectationFailed(Json.obj("error" -> "Bad Token")))
+    // }
+
+    callAdminApi()
   }
 
   def robotTxt = Action { req =>
@@ -113,12 +130,11 @@ class BackOfficeController(BackOfficeAction: BackOfficeAction,
     |Disallow: /""".stripMargin)
   }
 
-  def version = BackOfficeAction {
+  def version = BackOfficeActionAuth {
     Ok(Json.obj("version" -> commitVersion))
   }
 
-  def getEnv() = BackOfficeAction.async { ctx =>
-    val hash = BCrypt.hashpw("password", BCrypt.gensalt())
+  def getEnv() = BackOfficeActionAuth.async { ctx =>
     env.datastores.globalConfigDataStore.singleton().flatMap { config =>
       env.datastores.simpleAdminDataStore.findAll().map { users =>
         val changePassword = users.filter { user =>
@@ -158,15 +174,16 @@ class BackOfficeController(BackOfficeAction: BackOfficeAction,
   }
 
   def dashboard = BackOfficeActionAuth.async { ctx =>
+    val firstToken = BackOfficeActionAuth.generateToken()
     env.datastores.globalConfigDataStore.singleton().map { config =>
-      Ok(views.html.backoffice.dashboard(ctx.user, config, env))
+      Ok(views.html.backoffice.dashboard(ctx.user, config, firstToken, env))
     }
   }
 
   def dashboardRoutes(ui: String) = BackOfficeActionAuth.async { ctx =>
-    import scala.concurrent.duration._
+    val firstToken = BackOfficeActionAuth.generateToken()
     env.datastores.globalConfigDataStore.singleton().map { config =>
-      Ok(views.html.backoffice.dashboard(ctx.user, config, env))
+      Ok(views.html.backoffice.dashboard(ctx.user, config, firstToken, env))
     }
   }
 

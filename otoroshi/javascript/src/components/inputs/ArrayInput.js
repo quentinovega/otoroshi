@@ -2,6 +2,8 @@ import React, { Component } from 'react';
 import Select from 'react-select';
 import { Help } from './Help';
 
+import * as BackOfficeServices from '../../services/BackOfficeServices';
+
 export class ArrayInput extends Component {
   state = {
     loading: false,
@@ -11,7 +13,7 @@ export class ArrayInput extends Component {
   componentDidMount() {
     if (this.props.valuesFrom) {
       this.setState({ loading: true });
-      fetch(this.props.valuesFrom, {
+      BackOfficeServices.uberFetch(this.props.valuesFrom, {
         method: 'GET',
         credentials: 'include',
         headers: {

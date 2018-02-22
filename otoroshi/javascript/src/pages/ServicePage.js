@@ -366,7 +366,7 @@ export class ServicePage extends Component {
 
   resetCircuitBreaker = e => {
     if (e && e.preventDefault) e.preventDefault();
-    fetch(`/bo/api/services/${this.state.service.id}/circuitbreakers`, {
+    BackOfficeServices.uberFetch(`/bo/api/services/${this.state.service.id}/circuitbreakers`, {
       method: 'DELETE',
       credentials: 'include',
       headers: {

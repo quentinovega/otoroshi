@@ -1,11 +1,28 @@
 import moment from 'moment';
 
+let lastTokens = [];
+
+export function uberFetch(url, config) {
+  if (lastTokens.length === 0) {
+    lastTokens.push(window.__firstToken);
+  }
+  const newConfig = { ...config, headers: { ...config.headers, 'otoroshi-xsrf-token': lastTokens.pop() }}
+  console.log(newConfig.headers['otoroshi-xsrf-token']);
+  return fetch(url, newConfig).then(response => {
+    const tokenBack = response.headers.get('otoroshi-xsrf-token');
+    if (tokenBack) {
+      lastTokens.push(tokenBack);
+    }
+    return response;
+  });
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Should stay in BackOffice controller
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 export function syncWithMaster(config) {
-  return fetch(`/bo/api/redis/sync`, {
+  return uberFetch(`/bo/api/redis/sync`, {
     method: 'POST',
     credentials: 'include',
     headers: {
@@ -17,7 +34,7 @@ export function syncWithMaster(config) {
 }
 
 export function resetDB() {
-  return fetch(`/bo/api/resetdb`, {
+  return uberFetch(`/bo/api/resetdb`, {
     method: 'POST',
     credentials: 'include',
     headers: {
@@ -35,7 +52,7 @@ export function fetchLine(lineId) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 export function env() {
-  return fetch('/bo/api/env', {
+  return uberFetch('/bo/api/env', {
     method: 'GET',
     credentials: 'include',
     headers: {
@@ -45,7 +62,7 @@ export function env() {
 }
 
 export function version() {
-  return fetch('/bo/api/version', {
+  return uberFetch('/bo/api/version', {
     method: 'GET',
     credentials: 'include',
     headers: {
@@ -55,7 +72,7 @@ export function version() {
 }
 
 export function fetchCanaryCampaign(serviceId) {
-  return fetch(`/bo/api/proxy/api/services/${serviceId}/canary`, {
+  return uberFetch(`/bo/api/proxy/api/services/${serviceId}/canary`, {
     method: 'GET',
     credentials: 'include',
     headers: {
@@ -65,7 +82,7 @@ export function fetchCanaryCampaign(serviceId) {
 }
 
 export function resetCanaryCampaign(serviceId) {
-  return fetch(`/bo/api/proxy/api/services/${serviceId}/canary`, {
+  return uberFetch(`/bo/api/proxy/api/services/${serviceId}/canary`, {
     method: 'DELETE',
     credentials: 'include',
     headers: {
@@ -78,7 +95,7 @@ export function allServices(env, group) {
   const url = env
     ? `/bo/api/proxy/api/services?env=${env}`
     : group ? `/bo/api/proxy/api/services?group=${group}` : `/bo/api/proxy/api/services`;
-  return fetch(url, {
+  return uberFetch(url, {
     method: 'GET',
     credentials: 'include',
     headers: {
@@ -88,7 +105,7 @@ export function allServices(env, group) {
 }
 
 export function fetchRemainingQuotas(serviceId, clientId) {
-  return fetch(`/bo/api/proxy/api/services/${serviceId}/apikeys/${clientId}/quotas`, {
+  return uberFetch(`/bo/api/proxy/api/services/${serviceId}/apikeys/${clientId}/quotas`, {
     method: 'GET',
     credentials: 'include',
     headers: {
@@ -98,7 +115,7 @@ export function fetchRemainingQuotas(serviceId, clientId) {
 }
 
 export function fetchServiceEvents(serviceId, from, to) {
-  return fetch(
+  return uberFetch(
     `/bo/api/proxy/api/services/${serviceId}/events?from=${from.valueOf()}&to=${to.valueOf()}`,
     {
       method: 'GET',
@@ -111,7 +128,7 @@ export function fetchServiceEvents(serviceId, from, to) {
 }
 
 export function fetchServiceStats(serviceId, from, to) {
-  return fetch(
+  return uberFetch(
     `/bo/api/proxy/api/services/${serviceId}/stats?from=${from.valueOf()}&to=${to.valueOf()}`,
     {
       method: 'GET',
@@ -136,7 +153,7 @@ export function fetchServiceStats(serviceId, from, to) {
 }
 
 export function fetchGlobalStats(from, to) {
-  return fetch(`/bo/api/proxy/api/stats/global?from=${from.valueOf()}&to=${to.valueOf()}`, {
+  return uberFetch(`/bo/api/proxy/api/stats/global?from=${from.valueOf()}&to=${to.valueOf()}`, {
     method: 'GET',
     credentials: 'include',
     headers: {
@@ -158,7 +175,7 @@ export function fetchGlobalStats(from, to) {
 }
 
 export function fetchHealthCheckEvents(serviceId) {
-  return fetch(`/bo/api/proxy/api/services/${serviceId}/health`, {
+  return uberFetch(`/bo/api/proxy/api/services/${serviceId}/health`, {
     method: 'GET',
     credentials: 'include',
     headers: {
@@ -168,7 +185,7 @@ export function fetchHealthCheckEvents(serviceId) {
 }
 
 export function fetchLines() {
-  return fetch('/bo/api/proxy/api/lines', {
+  return uberFetch('/bo/api/proxy/api/lines', {
     method: 'GET',
     credentials: 'include',
     headers: {
@@ -192,7 +209,7 @@ export function fetchLines() {
 }
 
 export function fetchApiKeys(lineId, serviceId) {
-  return fetch(`/bo/api/proxy/api/services/${serviceId}/apikeys`, {
+  return uberFetch(`/bo/api/proxy/api/services/${serviceId}/apikeys`, {
     method: 'GET',
     credentials: 'include',
     headers: {
@@ -202,7 +219,7 @@ export function fetchApiKeys(lineId, serviceId) {
 }
 
 export function deleteApiKey(serviceId, ak) {
-  return fetch(`/bo/api/proxy/api/services/${serviceId}/apikeys/${ak.clientId}`, {
+  return uberFetch(`/bo/api/proxy/api/services/${serviceId}/apikeys/${ak.clientId}`, {
     method: 'DELETE',
     credentials: 'include',
     headers: {
@@ -212,7 +229,7 @@ export function deleteApiKey(serviceId, ak) {
 }
 
 export function createApiKey(serviceId, ak) {
-  return fetch(`/bo/api/proxy/api/services/${serviceId}/apikeys`, {
+  return uberFetch(`/bo/api/proxy/api/services/${serviceId}/apikeys`, {
     method: 'POST',
     credentials: 'include',
     headers: {
@@ -224,7 +241,7 @@ export function createApiKey(serviceId, ak) {
 }
 
 export function updateApiKey(serviceId, ak) {
-  return fetch(`/bo/api/proxy/api/services/${serviceId}/apikeys/${ak.clientId}`, {
+  return uberFetch(`/bo/api/proxy/api/services/${serviceId}/apikeys/${ak.clientId}`, {
     method: 'PUT',
     credentials: 'include',
     headers: {
@@ -236,7 +253,7 @@ export function updateApiKey(serviceId, ak) {
 }
 
 export function getGlobalConfig() {
-  return fetch(`/bo/api/proxy/api/globalconfig`, {
+  return uberFetch(`/bo/api/proxy/api/globalconfig`, {
     method: 'GET',
     credentials: 'include',
     headers: {
@@ -246,7 +263,7 @@ export function getGlobalConfig() {
 }
 
 export function updateGlobalConfig(gc) {
-  return fetch(`/bo/api/proxy/api/globalconfig`, {
+  return uberFetch(`/bo/api/proxy/api/globalconfig`, {
     method: 'PUT',
     credentials: 'include',
     headers: {
@@ -258,7 +275,7 @@ export function updateGlobalConfig(gc) {
 }
 
 export function fetchService(lineId, serviceId) {
-  return fetch(`/bo/api/proxy/api/services/${serviceId}`, {
+  return uberFetch(`/bo/api/proxy/api/services/${serviceId}`, {
     method: 'GET',
     credentials: 'include',
     headers: {
@@ -268,7 +285,7 @@ export function fetchService(lineId, serviceId) {
 }
 
 export function findServicesForGroup(group) {
-  return fetch(`/bo/api/proxy/api/groups/${group.id}/services`, {
+  return uberFetch(`/bo/api/proxy/api/groups/${group.id}/services`, {
     method: 'GET',
     credentials: 'include',
     headers: {
@@ -278,7 +295,7 @@ export function findServicesForGroup(group) {
 }
 
 export function findAllGroups() {
-  return fetch('/bo/api/proxy/api/groups', {
+  return uberFetch('/bo/api/proxy/api/groups', {
     method: 'GET',
     credentials: 'include',
     headers: {
@@ -288,7 +305,7 @@ export function findAllGroups() {
 }
 
 export function findGroupById(id) {
-  return fetch(`/bo/api/proxy/api/groups/${id}`, {
+  return uberFetch(`/bo/api/proxy/api/groups/${id}`, {
     method: 'GET',
     credentials: 'include',
     headers: {
@@ -298,7 +315,7 @@ export function findGroupById(id) {
 }
 
 export function deleteGroup(ak) {
-  return fetch(`/bo/api/proxy/api/groups/${ak.id}`, {
+  return uberFetch(`/bo/api/proxy/api/groups/${ak.id}`, {
     method: 'DELETE',
     credentials: 'include',
     headers: {
@@ -308,7 +325,7 @@ export function deleteGroup(ak) {
 }
 
 export function createGroup(ak) {
-  return fetch(`/bo/api/proxy/api/groups`, {
+  return uberFetch(`/bo/api/proxy/api/groups`, {
     method: 'POST',
     credentials: 'include',
     headers: {
@@ -320,7 +337,7 @@ export function createGroup(ak) {
 }
 
 export function updateGroup(ak) {
-  return fetch(`/bo/api/proxy/api/groups/${ak.id}`, {
+  return uberFetch(`/bo/api/proxy/api/groups/${ak.id}`, {
     method: 'PUT',
     credentials: 'include',
     headers: {
@@ -332,7 +349,7 @@ export function updateGroup(ak) {
 }
 
 export function deleteService(service) {
-  return fetch(`/bo/api/proxy/api/services/${service.id}`, {
+  return uberFetch(`/bo/api/proxy/api/services/${service.id}`, {
     method: 'DELETE',
     credentials: 'include',
     headers: {
@@ -342,7 +359,7 @@ export function deleteService(service) {
 }
 
 export function createNewService() {
-  return fetch(`/bo/api/proxy/api/new/service`, {
+  return uberFetch(`/bo/api/proxy/api/new/service`, {
     method: 'GET',
     credentials: 'include',
     headers: {
@@ -352,7 +369,7 @@ export function createNewService() {
 }
 
 export function saveService(service) {
-  return fetch(`/bo/api/proxy/api/services`, {
+  return uberFetch(`/bo/api/proxy/api/services`, {
     method: 'POST',
     credentials: 'include',
     headers: {
@@ -364,7 +381,7 @@ export function saveService(service) {
 }
 
 export function updateService(serviceId, service) {
-  return fetch(`/bo/api/proxy/api/services/${serviceId}`, {
+  return uberFetch(`/bo/api/proxy/api/services/${serviceId}`, {
     method: 'PUT',
     credentials: 'include',
     headers: {
@@ -376,7 +393,7 @@ export function updateService(serviceId, service) {
 }
 
 export function findAllApps() {
-  return fetch(`/bo/api/apps`, {
+  return uberFetch(`/bo/api/apps`, {
     method: 'GET',
     credentials: 'include',
     headers: {
@@ -386,7 +403,7 @@ export function findAllApps() {
 }
 
 export function discardAllSessions() {
-  return fetch(`/bo/api/sessions`, {
+  return uberFetch(`/bo/api/sessions`, {
     method: 'DELETE',
     credentials: 'include',
     headers: {
@@ -396,7 +413,7 @@ export function discardAllSessions() {
 }
 
 export function discardSession(id) {
-  return fetch(`/bo/api/sessions/${id}`, {
+  return uberFetch(`/bo/api/sessions/${id}`, {
     method: 'DELETE',
     credentials: 'include',
     headers: {
@@ -406,7 +423,7 @@ export function discardSession(id) {
 }
 
 export function fetchSessions() {
-  return fetch(`/bo/api/sessions`, {
+  return uberFetch(`/bo/api/sessions`, {
     method: 'GET',
     credentials: 'include',
     headers: {
@@ -416,7 +433,7 @@ export function fetchSessions() {
 }
 
 export function discardAllPrivateAppsSessions() {
-  return fetch(`/bo/api/papps/sessions`, {
+  return uberFetch(`/bo/api/papps/sessions`, {
     method: 'DELETE',
     credentials: 'include',
     headers: {
@@ -426,7 +443,7 @@ export function discardAllPrivateAppsSessions() {
 }
 
 export function discardPrivateAppsSession(id) {
-  return fetch(`/bo/api/papps/sessions/${id}`, {
+  return uberFetch(`/bo/api/papps/sessions/${id}`, {
     method: 'DELETE',
     credentials: 'include',
     headers: {
@@ -436,7 +453,7 @@ export function discardPrivateAppsSession(id) {
 }
 
 export function fetchPrivateAppsSessions() {
-  return fetch(`/bo/api/papps/sessions`, {
+  return uberFetch(`/bo/api/papps/sessions`, {
     method: 'GET',
     credentials: 'include',
     headers: {
@@ -446,7 +463,7 @@ export function fetchPrivateAppsSessions() {
 }
 
 export function panicMode() {
-  return fetch(`/bo/api/panic`, {
+  return uberFetch(`/bo/api/panic`, {
     method: 'POST',
     credentials: 'include',
     headers: {
@@ -457,7 +474,7 @@ export function panicMode() {
 }
 
 export function fetchAdmins() {
-  return fetch(`/bo/u2f/admins`, {
+  return uberFetch(`/bo/u2f/admins`, {
     method: 'GET',
     credentials: 'include',
     headers: {
@@ -466,7 +483,7 @@ export function fetchAdmins() {
   })
     .then(r => r.json())
     .then(_u2fAdmins => {
-      return fetch(`/bo/simple/admins`, {
+      return uberFetch(`/bo/simple/admins`, {
         method: 'GET',
         credentials: 'include',
         headers: {
@@ -484,7 +501,7 @@ export function fetchAdmins() {
 
 export function discardAdmin(username, id) {
   if (!id) {
-    return fetch(`/bo/simple/admins/${username}`, {
+    return uberFetch(`/bo/simple/admins/${username}`, {
       method: 'DELETE',
       credentials: 'include',
       headers: {
@@ -492,7 +509,7 @@ export function discardAdmin(username, id) {
       },
     }).then(r => r.json());
   } else {
-    return fetch(`/bo/u2f/admins/${username}/${id}`, {
+    return uberFetch(`/bo/u2f/admins/${username}/${id}`, {
       method: 'DELETE',
       credentials: 'include',
       headers: {
@@ -503,7 +520,7 @@ export function discardAdmin(username, id) {
 }
 
 export function fetchOtoroshi() {
-  return fetch(`/bo/api/proxy/api/otoroshi.json`, {
+  return uberFetch(`/bo/api/proxy/api/otoroshi.json`, {
     method: 'GET',
     credentials: 'include',
     headers: {
@@ -513,7 +530,7 @@ export function fetchOtoroshi() {
 }
 
 export function fetchAuditEvents() {
-  return fetch(`/bo/api/events/audit`, {
+  return uberFetch(`/bo/api/events/audit`, {
     method: 'GET',
     credentials: 'include',
     headers: {
@@ -523,7 +540,7 @@ export function fetchAuditEvents() {
 }
 
 export function fetchAlertEvents() {
-  return fetch(`/bo/api/events/alert`, {
+  return uberFetch(`/bo/api/events/alert`, {
     method: 'GET',
     credentials: 'include',
     headers: {
@@ -533,7 +550,7 @@ export function fetchAlertEvents() {
 }
 
 export function fetchLoggers() {
-  return fetch(`/bo/api/loggers`, {
+  return uberFetch(`/bo/api/loggers`, {
     method: 'GET',
     credentials: 'include',
     headers: {
@@ -543,7 +560,7 @@ export function fetchLoggers() {
 }
 
 export function changeLogLevel(name, level) {
-  return fetch(`/bo/api/loggers/${name}/level?newLevel=${level}`, {
+  return uberFetch(`/bo/api/loggers/${name}/level?newLevel=${level}`, {
     method: 'PUT',
     credentials: 'include',
     headers: {
@@ -554,7 +571,7 @@ export function changeLogLevel(name, level) {
 }
 
 export function fetchTop10() {
-  return fetch(`/bo/api/services/top10`, {
+  return uberFetch(`/bo/api/services/top10`, {
     method: 'GET',
     credentials: 'include',
     headers: {
@@ -564,7 +581,7 @@ export function fetchTop10() {
 }
 
 export function fetchServicesMap() {
-  return fetch(`/bo/api/services/map`, {
+  return uberFetch(`/bo/api/services/map`, {
     method: 'GET',
     credentials: 'include',
     headers: {
@@ -597,7 +614,7 @@ export function fetchServicesTree() {
       ],
     })
   );
-  return fetch(`/bo/api/services/tree`, {
+  return uberFetch(`/bo/api/services/tree`, {
     method: 'GET',
     credentials: 'include',
     headers: {
@@ -607,7 +624,7 @@ export function fetchServicesTree() {
 }
 
 export function findTemplateById(id) {
-  return fetch(`/bo/api/proxy/api/services/${id}/template`, {
+  return uberFetch(`/bo/api/proxy/api/services/${id}/template`, {
     method: 'GET',
     credentials: 'include',
     headers: {
@@ -617,7 +634,7 @@ export function findTemplateById(id) {
 }
 
 export function deleteTemplate(ak) {
-  return fetch(`/bo/api/proxy/api/services/${ak.serviceId}/template`, {
+  return uberFetch(`/bo/api/proxy/api/services/${ak.serviceId}/template`, {
     method: 'DELETE',
     credentials: 'include',
     headers: {
@@ -627,7 +644,7 @@ export function deleteTemplate(ak) {
 }
 
 export function createTemplate(ak) {
-  return fetch(`/bo/api/proxy/api/services/${ak.serviceId}/template`, {
+  return uberFetch(`/bo/api/proxy/api/services/${ak.serviceId}/template`, {
     method: 'POST',
     credentials: 'include',
     headers: {
@@ -639,7 +656,7 @@ export function createTemplate(ak) {
 }
 
 export function updateTemplate(ak) {
-  return fetch(`/bo/api/proxy/api/services/${ak.serviceId}/template`, {
+  return uberFetch(`/bo/api/proxy/api/services/${ak.serviceId}/template`, {
     method: 'PUT',
     credentials: 'include',
     headers: {

@@ -21,7 +21,7 @@ function extractEnv(value = '') {
 // http://yokai.com/otoroshi/
 export class TopBar extends Component {
   searchServicesOptions = query => {
-    return fetch(`/bo/api/search/services`, {
+    return BackOfficeServices.uberFetch(`/bo/api/search/services`, {
       method: 'POST',
       credentials: 'include',
       headers: {

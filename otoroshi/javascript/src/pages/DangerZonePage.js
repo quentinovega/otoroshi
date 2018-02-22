@@ -568,7 +568,7 @@ export class DangerZonePage extends Component {
       const input = document.querySelector('input[type="file"]');
       const data = new FormData();
       data.append('file', input.files[0]);
-      return fetch('/bo/api/proxy/api/import', {
+      return BackOfficeServices.uberFetch('/bo/api/proxy/api/import', {
         method: 'POST',
         credentials: 'include',
         headers: {
