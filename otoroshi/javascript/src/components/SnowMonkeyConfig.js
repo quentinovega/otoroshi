@@ -92,6 +92,101 @@ export class SnowMonkeyConfig extends Component {
           help="..."
           onChange={e => this.changeTheValue('targetGroups', e)}
         />
+{/*new skin begin */}
+<div className="row">
+      <div className="col-xs-12 col-sm-3">
+        <div className="panel panel-primary">
+          <div className="panel-heading">Large Resquest Fault</div>
+          <div className="panel-body">
+            <div className="form-group">
+              <div className="col-xs-12">
+                <label for="input-Ratio" class="control-label">Ratio
+                  <i class="fa fa-question-circle-o" data-toggle="tooltip" data-placement="top" title="" data-original-title="..."></i>
+                </label>
+                <input type="number" step="0.1" min="0" max="1" class="form-control" id="input-Ratio" value="0.2"/>
+              </div>
+            </div>
+            <div className="form-group">
+              <div className="col-xs-12">
+                <label for="input-Additional size" className="control-label">Additional size
+                <i className="fa fa-question-circle-o" data-toggle="tooltip" data-placement="top" title="" data-original-title="..."></i>
+                </label>
+                <div className="input-group">
+                  <input type="number" class="form-control" id="input-Additional size" value="0"/>
+                  <div className="input-group-addon">byt.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="col-xs-12 col-sm-3">
+        <div className="panel panel-primary">
+          <div className="panel-heading">Large Resquest Fault 2</div>
+          <div className="panel-body">
+            <div className="form-group">
+              <div className="col-xs-12">
+                <label for="input-Ratio" class="">Zone texte
+                  <i class="fa fa-question-circle-o" data-toggle="tooltip" data-placement="top" title="" data-original-title="..."></i>
+                </label>
+                <textarea className="form-control"></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="col-xs-12 col-sm-3">
+        <div className="panel panel-primary">
+          <div className="panel-heading">Large Resquest Fault 3</div>
+          <div className="panel-body">
+            <div className="form-group">
+            <div className="col-xs-12">
+              <label for="input-Ratio" class="control-label">Ratio
+                <i class="fa fa-question-circle-o" data-toggle="tooltip" data-placement="top" title="" data-original-title="..."></i>
+              </label>
+              <input type="number" step="0.1" min="0" max="1" class="form-control" id="input-Ratio" value="0.2"/>
+            </div>
+            </div>
+            <div className="form-group">
+              <label for="input-Ratio" className="col-xs-12">Headers
+                <i className="fa fa-question-circle-o" data-toggle="tooltip" data-placement="top" title="" data-original-title="..."></i>
+                <button type="button" className="btn btn-primary btn-xs pull-right"><i className="glyphicon glyphicon-plus-sign"></i> </button>
+              </label>
+              <div className="col-sm-offset-1 col-sm-11">
+                  <label for="input-Ratio" style={{marginBottom:0,color: '#cccccc'}}>Key</label>
+                  <input type="number" step="0.1" min="0" max="1" className="form-control" id="input-Ratio"  placeholder= "Content-Type" value="0.2"/>
+              </div>
+              <div className="col-sm-offset-1 col-sm-11">
+                <label for="input-Ratio" style={{marginBottom:0,color: '#cccccc'}}>Value</label>
+                <input type="number" step="0.1" min="0" max="1" className="form-control" id="input-Ratio" placeholder= "application/json" value="0.2"/>
+              </div>
+              <div className="col-sm-offset-1 col-sm-11">
+                <button type="button" className="btn btn-danger btn-block btn-xs" style={{marginBottom:20,marginTop:10}}><i className="glyphicon glyphicon-trash"></i></button>
+              </div>
+              <div className="col-sm-offset-1 col-sm-11">
+                  <label for="input-Ratio" style={{marginBottom:0,color: '#cccccc'}}>Key</label>
+                  <input type="number" step="0.1" min="0" max="1" className="form-control" id="input-Ratio" placeholder= "Content-Type" value=""/>
+              </div>
+              <div className="col-sm-offset-1 col-sm-11">
+                <label for="input-Ratio" style={{marginBottom:0,color: '#cccccc'}}>Value</label>
+                  <input type="number" step="0.1" min="0" max="1" className="form-control" id="input-Ratio" placeholder= "application/json" value=""/>
+              </div>
+              <div className="col-sm-offset-1 col-sm-11">
+                <button type="button" className="btn btn-danger btn-block btn-xs" style={{marginBottom:20,marginTop:10}}><i className="glyphicon glyphicon-trash"></i></button>
+              </div>
+            </div>
+            </div>
+        </div>
+      </div>
+      <div className="col-xs-12 col-sm-3">
+        <div className="panel panel-primary">
+          <div className="panel-heading">Large Resquest Fault 4</div>
+          <div className="panel-body">Panel Content</div>
+        </div>
+      </div>
+
+</div>
+{/*new skin end */}
         <ChaosConfig
           hideLargeStuff={true}
           config={this.state.config.chaosConfig}
