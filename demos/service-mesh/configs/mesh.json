@@ -183,8 +183,8 @@
       "subdomain": "service-1",
       "targets": [
         {
-          "host": "otoroshi-service-1:8080",
-          "scheme": "http"
+          "host": "otoroshi-service-1.foo.bar:8080",
+          "scheme": "https"
         }
       ],
       "root": "/",
@@ -194,7 +194,7 @@
       "redirectToLocal": false,
       "enabled": true,
       "privateApp": false,
-      "forceHttps": false,
+      "forceHttps": true,
       "maintenanceMode": false,
       "buildMode": false,
       "enforceSecureCommunication": false,
@@ -244,8 +244,8 @@
       "subdomain": "service-2",
       "targets": [
         {
-          "host": "otoroshi-service-2:8080",
-          "scheme": "http"
+          "host": "otoroshi-service-2.foo.bar:8080",
+          "scheme": "https"
         }
       ],
       "root": "/",
@@ -255,7 +255,7 @@
       "redirectToLocal": false,
       "enabled": true,
       "privateApp": false,
-      "forceHttps": false,
+      "forceHttps": true,
       "maintenanceMode": false,
       "buildMode": false,
       "enforceSecureCommunication": false,
@@ -305,8 +305,8 @@
       "subdomain": "service-3",
       "targets": [
         {
-          "host": "otoroshi-service-3:8080",
-          "scheme": "http"
+          "host": "otoroshi-service-3.foo.bar:8080",
+          "scheme": "https"
         }
       ],
       "root": "/",
@@ -316,7 +316,7 @@
       "redirectToLocal": false,
       "enabled": true,
       "privateApp": false,
-      "forceHttps": false,
+      "forceHttps": true,
       "maintenanceMode": false,
       "buildMode": false,
       "enforceSecureCommunication": false,
@@ -366,8 +366,8 @@
       "subdomain": "service-frontend",
       "targets": [
         {
-          "host": "otoroshi-service-frontend:8080",
-          "scheme": "http"
+          "host": "otoroshi-service-frontend.foo.bar:8080",
+          "scheme": "https"
         }
       ],
       "root": "/",
@@ -377,7 +377,7 @@
       "redirectToLocal": false,
       "enabled": true,
       "privateApp": false,
-      "forceHttps": false,
+      "forceHttps": true,
       "maintenanceMode": false,
       "buildMode": false,
       "enforceSecureCommunication": false,

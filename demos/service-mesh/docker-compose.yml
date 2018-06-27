@@ -56,7 +56,11 @@ services:
     environment:
       - APP_STORAGE=redis
       - REDIS_HOST=internal-redis
-      - PORT=8080
+      - PORT=8088
+      - HTTPS_PORT=8080
+      - HTTPS_KEYSTORE_PATH=/usr/app/otoroshi/imports/foo.bar.p12
+      - HTTPS_KEYSTORE_PASSWORD=ouhUpHgmowd2xXz3
+      - HTTPS_KEYSTORE_TYPE=PKCS12
       - SIDECAR_STRICT=true
       - SIDECAR_SERVICE_ID=descriptor-service-1
       - SIDECAR_TARGET=http://service-1:5432
@@ -73,6 +77,8 @@ services:
     networks:
       mesh:
         ipv4_address: 172.16.239.31
+        aliases:
+            - "otoroshi-service-1.foo.bar"
 
   otoroshi-service-2:
     image: maif/otoroshi:1.2.0-dev
@@ -81,7 +87,11 @@ services:
     environment:
       - APP_STORAGE=redis
       - REDIS_HOST=internal-redis
-      - PORT=8080
+      - PORT=8088
+      - HTTPS_PORT=8080
+      - HTTPS_KEYSTORE_PATH=/usr/app/otoroshi/imports/foo.bar.p12
+      - HTTPS_KEYSTORE_PASSWORD=ouhUpHgmowd2xXz3
+      - HTTPS_KEYSTORE_TYPE=PKCS12
       - SIDECAR_STRICT=true
       - SIDECAR_SERVICE_ID=descriptor-service-2
       - SIDECAR_TARGET=http://service-2:5432
@@ -99,6 +109,8 @@ services:
     networks:
       mesh:
         ipv4_address: 172.16.239.32
+        aliases:
+            - "otoroshi-service-2.foo.bar"
 
   otoroshi-service-3:
     image: maif/otoroshi:1.2.0-dev
@@ -107,7 +119,11 @@ services:
     environment:
       - APP_STORAGE=redis
       - REDIS_HOST=internal-redis
-      - PORT=8080
+      - PORT=8088
+      - HTTPS_PORT=8080
+      - HTTPS_KEYSTORE_PATH=/usr/app/otoroshi/imports/foo.bar.p12
+      - HTTPS_KEYSTORE_PASSWORD=ouhUpHgmowd2xXz3
+      - HTTPS_KEYSTORE_TYPE=PKCS12
       - SIDECAR_STRICT=true
       - SIDECAR_SERVICE_ID=descriptor-service-3
       - SIDECAR_TARGET=http://service-3:5432
@@ -125,17 +141,21 @@ services:
     networks:
       mesh:
         ipv4_address: 172.16.239.33
+        aliases:
+            - "otoroshi-service-3.foo.bar"
 
   otoroshi-service-frontend:
     image: maif/otoroshi:1.2.0-dev
     networks:
       - mesh
-    ports:
-      - 8081:8080
     environment:
       - APP_STORAGE=redis
       - REDIS_HOST=internal-redis
-      - PORT=8080
+      - PORT=8088
+      - HTTPS_PORT=8080
+      - HTTPS_KEYSTORE_PATH=/usr/app/otoroshi/imports/foo.bar.p12
+      - HTTPS_KEYSTORE_PASSWORD=ouhUpHgmowd2xXz3
+      - HTTPS_KEYSTORE_TYPE=PKCS12
       - SIDECAR_STRICT=true
       - SIDECAR_SERVICE_ID=descriptor-service-frontend
       - SIDECAR_TARGET=http://service-frontend:5432
@@ -153,6 +173,8 @@ services:
     networks:
       mesh:
         ipv4_address: 172.16.239.34
+        aliases:
+            - "otoroshi-service-frontend.foo.bar"
 
   otoroshi-gateway:
     image: maif/otoroshi:1.2.0-dev
@@ -163,7 +185,11 @@ services:
     environment:
       - APP_STORAGE=redis
       - REDIS_HOST=gateway-redis
-      - PORT=8080
+      - PORT=8088
+      - HTTPS_PORT=8080
+      - HTTPS_KEYSTORE_PATH=/usr/app/otoroshi/imports/foo.bar.p12
+      - HTTPS_KEYSTORE_PASSWORD=ouhUpHgmowd2xXz3
+      - HTTPS_KEYSTORE_TYPE=PKCS12
       - APP_IMPORT_FROM=/usr/app/otoroshi/imports/gateway.json
     volumes:
       - "./configs:/usr/app/otoroshi/imports"
@@ -174,6 +200,8 @@ services:
     networks:
       mesh:
         ipv4_address: 172.16.239.20
+        aliases:
+          - "otoroshi-gateway.foo.bar"
 
   internal-redis:
     image: redis:4.0.8

@@ -11,7 +11,7 @@ app.get('/front', (req, res) => {
   let globalDuration = 0;
   const start = Date.now();
   console.log('Calling service-1 from service-frontend ...')
-  fetch('http://otoroshi-service-frontend:8080/api', {
+  fetch('https://otoroshi-service-frontend.foo.bar:8080/api', {
     method: 'GET',
     headers: {
       'Host': 'service-1.foo.bar',
@@ -22,7 +22,7 @@ app.get('/front', (req, res) => {
     service1CallDuration = Date.now() - start;
     const start2 = Date.now();
     console.log('Calling service-2 from service-frontend ...')
-    return fetch('http://otoroshi-service-frontend:8080/api', {
+    return fetch('https://otoroshi-service-frontend.foo.bar:8080/api', {
       method: 'GET',
       headers: {
         'Host': 'service-2.foo.bar',

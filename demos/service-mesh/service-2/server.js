@@ -8,7 +8,7 @@ app.get('/api', (req, res) => {
   // should be localhost if on the same pod
   const start = Date.now();
   console.log('Calling service-3 from service-2 ...')
-  fetch('http://otoroshi-service-2:8080/api', {
+  fetch('https://otoroshi-service-2.foo.bar:8080/api', {
     method: 'GET',
     headers: {
       'Host': 'service-3.foo.bar',
