@@ -59,7 +59,7 @@ case class GlobalConfig(
     privateAppsAuth0Config: Option[Auth0Config] = None,
     cleverSettings: Option[CleverCloudSettings] = None,
     mailGunSettings: Option[MailgunSettings] = None,
-    statsdConfig: Option[StatsdConfig] = None,
+    statsdConfig: StatsdConfig = StatsdConfig(),
     maxWebhookSize: Int = 100,
     middleFingers: Boolean = false,
     maxLogsSize: Int = 10000,
@@ -147,15 +147,14 @@ object GlobalConfig {
             "auditTopic"     -> config.auditTopic
           )
       }
-      val statsdConfig: JsValue = o.statsdConfig match {
-        case None => JsNull
-        case Some(config) =>
-          Json.obj(
-            "host"    -> config.host,
-            "port"    -> config.port,
-            "datadog" -> config.datadog
-          )
-      }
+      val statsdConfig: JsValue = Json.obj(
+        "enabled"    -> o.statsdConfig.enabled,
+        "host"    -> o.statsdConfig.host,
+        "port"    -> o.statsdConfig.port,
+        "datadog" -> o.statsdConfig.datadog,
+        "datadogApiKey" -> o.statsdConfig.datadogApiKey.map(JsString.apply).getOrElse(JsNull).as[JsValue]
+      )
+
       Json.obj(
         "lines"                   -> JsArray(o.lines.map(JsString.apply)),
         "streamEntityOnly"        -> o.streamEntityOnly,
@@ -218,17 +217,15 @@ object GlobalConfig {
           maxWebhookSize = (json \ "maxWebhookSize").asOpt[Int].getOrElse(100),
           middleFingers = (json \ "middleFingers").asOpt[Boolean].getOrElse(false),
           maxLogsSize = (json \ "maxLogsSize").asOpt[Int].getOrElse(10000),
-          statsdConfig = (json \ "statsdConfig").asOpt[JsValue].flatMap { config =>
-            (
-              (config \ "host").asOpt[String].filter(_.nonEmpty),
-              (config \ "port").asOpt[Int],
-              (config \ "datadog").asOpt[Boolean].getOrElse(false)
-            ) match {
-              case (Some(host), Some(port), datadog) =>
-                Some(StatsdConfig(datadog, host, port))
-              case e => None
-            }
-          },
+          statsdConfig = (json \ "statsdConfig").asOpt[JsValue].map { config =>
+            StatsdConfig(
+              enabled = (config \ "enabled").asOpt[Boolean].getOrElse(false),
+              host = (config \ "host").asOpt[String].filter(_.nonEmpty).getOrElse("localhost"),
+              port = (config \ "port").asOpt[Int].getOrElse(8125),
+              datadog = (config \ "datadog").asOpt[Boolean].getOrElse(false),
+              datadogApiKey = (config \ "datadogApiKey").asOpt[String]
+            )
+          } getOrElse StatsdConfig() ,
           kafkaConfig = (json \ "kafkaConfig").asOpt[JsValue].flatMap { config =>
             (
               (config \ "servers").asOpt[Seq[String]].filter(_.nonEmpty),

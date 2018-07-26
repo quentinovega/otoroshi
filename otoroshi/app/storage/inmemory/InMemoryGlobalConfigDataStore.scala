@@ -115,7 +115,7 @@ class InMemoryGlobalConfigDataStore(redisCli: RedisLike, _env: Env)
     for {
       secCalls <- redisCli.incrby(throttlingKey(), 1L)
       _        <- redisCli.ttl(throttlingKey()).filter(_ > -1).recoverWith { case _ => redisCli.expire(throttlingKey(), 10) }
-      fu       = env.statsd.meter(s"global.throttling-quotas", secCalls.toDouble)(config.statsdConfig)
+      fu       = env.statsd.meter(s"global.throttling-quotas", secCalls.toDouble)(config.statsdConfig.asOpt)
     } yield ()
 
   override def allEnv()(implicit ec: ExecutionContext, env: Env): Future[Set[String]] = singleton().map(_.lines.toSet)

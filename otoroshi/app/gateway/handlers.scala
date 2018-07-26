@@ -385,7 +385,7 @@ class GatewayRequestHandler(snowMonkey: SnowMonkey,
     val finalResult = {
       // env.datastores.globalConfigDataStore.singleton().flatMap { globalConfig => // Very consuming but eh !!!
       env.statsd.meter(s"${env.snowflakeSeed}.concurrent-requests", currentHandledRequests.toDouble)(
-        globalConfig.statsdConfig
+        globalConfig.statsdConfig.asOpt
       )
       if (currentHandledRequests > globalConfig.maxConcurrentRequests) {
         Audit.send(
@@ -1493,7 +1493,7 @@ class GatewayRequestHandler(snowMonkey: SnowMonkey,
         //  .fast
         //  .map(
         //    config =>
-        env.statsd.meter(s"${env.snowflakeSeed}.concurrent-requests", requests.toDouble)(globalConfig.statsdConfig)
+        env.statsd.meter(s"${env.snowflakeSeed}.concurrent-requests", requests.toDouble)(globalConfig.statsdConfig.asOpt)
       //  )
     }(env.otoroshiExecutionContext)
   }

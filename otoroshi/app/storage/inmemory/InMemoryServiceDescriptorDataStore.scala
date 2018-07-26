@@ -158,23 +158,23 @@ class InMemoryServiceDescriptorDataStore(redisCli: RedisLike, maxQueueSize: Int,
       _ <- dataOutIncrementService
       _ <- dataOutShiftService
       _ <- dataOutShiftGlobal
-      _ <- config.statsdConfig
+      _ <- config.statsdConfig.asOpt
             .map(
               _ =>
                 FastFuture.successful(
                   (
-                    env.statsd.meter(s"global.calls", globalCalls.toDouble)(config.statsdConfig),
-                    env.statsd.meter(s"services.${id}.calls", serviceCalls.toDouble)(config.statsdConfig),
-                    env.statsd.meter(s"global.duration", callDuration.toDouble)(config.statsdConfig),
-                    env.statsd.meter(s"global.overhead", callOverhead.toDouble)(config.statsdConfig),
-                    env.statsd.meter(s"global.data-in", dataIn.toDouble)(config.statsdConfig),
-                    env.statsd.meter(s"global.data-out", dataOut.toDouble)(config.statsdConfig),
-                    env.statsd.meter(s"global.upstream-latency", upstreamLatency.toDouble)(config.statsdConfig),
-                    env.statsd.meter(s"services.${id}.duration", callDuration.toDouble)(config.statsdConfig),
-                    env.statsd.meter(s"services.${id}.overhead", callOverhead.toDouble)(config.statsdConfig),
-                    env.statsd.meter(s"services.${id}.data-in", dataIn.toDouble)(config.statsdConfig),
-                    env.statsd.meter(s"services.${id}.data-out", dataOut.toDouble)(config.statsdConfig),
-                    env.statsd.meter(s"services.${id}.upstream-latency", upstreamLatency.toDouble)(config.statsdConfig)
+                    env.statsd.meter(s"global.calls", globalCalls.toDouble)(config.statsdConfig.asOpt),
+                    env.statsd.meter(s"services.${id}.calls", serviceCalls.toDouble)(config.statsdConfig.asOpt),
+                    env.statsd.meter(s"global.duration", callDuration.toDouble)(config.statsdConfig.asOpt),
+                    env.statsd.meter(s"global.overhead", callOverhead.toDouble)(config.statsdConfig.asOpt),
+                    env.statsd.meter(s"global.data-in", dataIn.toDouble)(config.statsdConfig.asOpt),
+                    env.statsd.meter(s"global.data-out", dataOut.toDouble)(config.statsdConfig.asOpt),
+                    env.statsd.meter(s"global.upstream-latency", upstreamLatency.toDouble)(config.statsdConfig.asOpt),
+                    env.statsd.meter(s"services.${id}.duration", callDuration.toDouble)(config.statsdConfig.asOpt),
+                    env.statsd.meter(s"services.${id}.overhead", callOverhead.toDouble)(config.statsdConfig.asOpt),
+                    env.statsd.meter(s"services.${id}.data-in", dataIn.toDouble)(config.statsdConfig.asOpt),
+                    env.statsd.meter(s"services.${id}.data-out", dataOut.toDouble)(config.statsdConfig.asOpt),
+                    env.statsd.meter(s"services.${id}.upstream-latency", upstreamLatency.toDouble)(config.statsdConfig.asOpt)
                   )
               )
             )

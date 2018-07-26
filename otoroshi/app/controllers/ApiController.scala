@@ -330,6 +330,8 @@ class ApiController(ApiAction: ApiAction, UnAuthApiAction: UnAuthApiAction, cc: 
           Alerts.send(
             GlobalConfigModification(env.snowflakeGenerator.nextIdStr(), env.env, user, conf.toJson, ak.toJson, admEvt)
           )
+          logger.warn(ak.statsdConfig.toString)
+          env.statsd.load(ak.statsdConfig)
           ak.save().map(_ => Ok(Json.obj("done" -> true))) // TODO : rework
         }
       }
@@ -359,6 +361,7 @@ class ApiController(ApiAction: ApiAction, UnAuthApiAction: UnAuthApiAction, cc: 
           Alerts.send(
             GlobalConfigModification(env.snowflakeGenerator.nextIdStr(), env.env, user, conf.toJson, ak.toJson, admEvt)
           )
+          env.statsd.load(ak.statsdConfig)
           ak.save().map(_ => Ok(Json.obj("done" -> true))) // TODO : rework
         }
       }

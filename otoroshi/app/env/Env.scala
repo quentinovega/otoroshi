@@ -25,6 +25,7 @@ import storage.inmemory.InMemoryDataStores
 import storage.leveldb.LevelDbDataStores
 import storage.mongo.MongoDataStores
 import storage.redis.RedisDataStores
+import utils.MetricsContext
 
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future, Promise}
@@ -46,6 +47,8 @@ class Env(val configuration: Configuration,
           val circuitBeakersHolder: CircuitBreakersHolder) {
 
   val logger = Logger("otoroshi-env")
+
+  val metricsContext = MetricsContext().registerJVMMetrics()
 
   val otoroshiActorSystem: ActorSystem = ActorSystem(
     "otoroshi-actor-system",
@@ -249,6 +252,7 @@ class Env(val configuration: Configuration,
 
     otoroshiActorSystem.terminate()
     datastores.after(configuration, environment, lifecycle)
+
     FastFuture.successful(())
   })
 
@@ -365,6 +369,10 @@ class Env(val configuration: Configuration,
             case _ =>
           }
         }
+
+      datastores.globalConfigDataStore.singleton()(otoroshiExecutionContext, this).map { globalConfig =>
+        statsd.load(globalConfig.statsdConfig)
+      }
 
       if (isProd && checkForUpdates) {
         otoroshiActorSystem.scheduler.schedule(5.second, 24.hours) {

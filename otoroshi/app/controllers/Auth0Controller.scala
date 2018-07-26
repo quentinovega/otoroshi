@@ -16,6 +16,7 @@ import security.{Auth0Config, IdGenerator}
 
 import scala.concurrent.Future
 import scala.concurrent.duration.Duration
+import scala.util.Success
 
 class Auth0Controller(BackOfficeActionAuth: BackOfficeActionAuth,
                       PrivateAppsAction: PrivateAppsAction,
@@ -277,6 +278,6 @@ class Auth0Controller(BackOfficeActionAuth: BackOfficeActionAuth,
       .url(s"https://$domain/userinfo")
       .withQueryStringParameters("access_token" -> accessToken)
       .get()
-    userResponse.flatMap(response => FastFuture.successful(response.json))
+    userResponse.map(_.json)
   }
 }

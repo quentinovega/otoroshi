@@ -373,6 +373,14 @@ export class DangerZonePage extends Component {
         help: 'The topic on which Otoroshi audits will be sent',
       },
     },
+    'statsdConfig.enabled': {
+      type: 'bool',
+      props: {
+        label: 'Enable statds reporting',
+        placeholder: '--',
+        help: 'Enables statsd reporting to the statsd daemon',
+      },
+    },
     'statsdConfig.datadog': {
       type: 'bool',
       props: {
@@ -395,6 +403,14 @@ export class DangerZonePage extends Component {
         label: 'StatsD agent port',
         placeholder: '8125',
         help: 'The port on which StatsD agent is listening (default is 8125)',
+      },
+    },
+    'statsdConfig.datadogApiKey': {
+      type: 'string',
+      props: {
+        label: 'Datadog apikey',
+        placeholder: 'xxxxx',
+        help: 'Your datadog apikey',
       },
     },
   };
@@ -434,9 +450,11 @@ export class DangerZonePage extends Component {
     'alertsWebhook',
     'alertsEmails',
     '>>>Statsd settings',
+    'statsdConfig.enabled',
     'statsdConfig.datadog',
     'statsdConfig.host',
     'statsdConfig.port',
+    'statsdConfig.datadogApiKey',
     '>>>Backoffice Auth0 settings',
     'backofficeAuth0Config.clientId',
     'backofficeAuth0Config.clientSecret',
