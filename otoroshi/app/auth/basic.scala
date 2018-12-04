@@ -231,23 +231,7 @@ case class BasicAuthModule(authConfig: BasicAuthModuleConfig) extends AuthModule
             case (Some(username), Some(password), Some(token)) => {
               env.datastores.authConfigsDataStore.validateLoginToken(token).map {
                 case false => Left("Bad token")
-                case true =>
-                  authConfig.users
-                    .find(u => u.email == username)
-                    .filter(u => BCrypt.checkpw(password, u.password)) match {
-                    case Some(user) =>
-                      Right(
-                        PrivateAppsUser(
-                          randomId = IdGenerator.token(64),
-                          name = user.name,
-                          email = user.email,
-                          profile = user.asJson,
-                          realm = authConfig.cookieSuffix(descriptor),
-                          otoroshiData = user.metadata.asOpt[Map[String, String]]
-                        )
-                      )
-                    case None => Left(s"You're not authorized here")
-                  }
+                case true => bindUser(username, password, descriptor)
               }
             }
             case _ => {
